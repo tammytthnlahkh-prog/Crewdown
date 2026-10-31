@@ -278,7 +278,7 @@ func _local_physics(delta: float) -> void:
 	var forward := Vector3(-sin(yaw), 0, -cos(yaw))
 	var right := Vector3(cos(yaw), 0, -sin(yaw))
 	var wish := (right * mv.x + forward * -mv.y)
-	var want_sprint: bool = mv.length() > 0.9 and mv.y < -0.3 and not ads and not reloading and not crouched and can_act
+	var want_sprint: bool = mv.length() > 0.9 and mv.y < -0.3 and not ads and not reloading and not crouched and can_act and not _fire_held
 	sprinting = want_sprint
 	var target_speed := WALK
 	if sprinting:
@@ -601,7 +601,7 @@ func _weapon_logic(delta: float, spd: float) -> void:
 		if _reload_t >= _reload_total:
 			reloading = false
 			ammo = int(wd["mag"])
-	var can: bool = alive and not choosing and not reloading and not sprinting and not (arena and arena.frozen)
+	var can: bool = alive and not choosing and not reloading and not (arena and arena.frozen)
 	if can and _cool <= 0.0:
 		var want_shot := false
 		if wd["auto"]:

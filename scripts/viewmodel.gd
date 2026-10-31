@@ -35,7 +35,8 @@ var _rest_t := {}      # side -> Vector3 (محور اللف)
 var _rest_frame := {}  # side -> Basis
 var _fingers := {"R": [], "L": []}
 var _rest_global := {}
-var _shoulder_view := {"R": Vector3(0.22, -0.62, -0.20), "L": Vector3(0.03, -0.62, -0.20)}
+var _sh_delta := {}
+var _shoulder_view := {"R": Vector3(0.20, -0.62, 0.20), "L": Vector3(0.09, -0.62, 0.20)}
 var _lookd := Vector2.ZERO
 var _debug_pose: Dictionary = {}
 var _rest_hand_cache := {}
@@ -88,6 +89,12 @@ func _build_hands() -> void:
 	var mid := (sh_r + sh_l) * 0.5
 	var want: Vector3 = ((_shoulder_view["R"] as Vector3) + (_shoulder_view["L"] as Vector3)) * 0.5
 	hands.position += want - mid
+	# قرّب الكتفين من بعضهما (عرض الهيكل الأصلي كبير فتظهر الذراع اليسرى من الجانب)
+	var to_sk0 := sk.global_transform.affine_inverse() * global_transform
+	for sd in ["R", "L"]:
+		var ub: int = _bones[sd]["upper"]
+		var cur_vm := global_transform.affine_inverse() * (sk.global_transform * sk.get_bone_global_pose(ub).origin)
+		_sh_delta[sd] = to_sk0.basis * ((_shoulder_view[sd] as Vector3) - cur_vm)
 	if wid != "":
 		set_weapon(wid)
 
@@ -266,6 +273,15 @@ var hand_cfg := {
 
 func _pose_hands(rg: Vector3, lg: Vector3, l_extra: Vector3, ads_v: float, rp: float) -> void:
 	sk.reset_bone_poses()
+	for sd in _sh_delta.keys():
+		var ub: int = _bones[sd]["upper"]
+		var par: int = sk.get_bone_parent(ub)
+		if par >= 0:
+			var gpar: int = sk.get_bone_parent(par)
+			var gb := Basis.IDENTITY
+			if gpar >= 0:
+				gb = sk.get_bone_global_pose(gpar).basis
+			sk.set_bone_pose_position(par, sk.get_bone_pose_position(par) + gb.inverse() * (_sh_delta[sd] as Vector3))
 	var wb := weapon.transform.basis
 	var to_sk := sk.global_transform.affine_inverse() * global_transform
 	var fr: Vector3 = wb * (hand_cfg["R"]["f"] as Vector3).normalized()

@@ -137,6 +137,10 @@ func _input(event: InputEvent) -> void:
 		match d2["k"]:
 			"look":
 				look_delta += e2.relative
+			"btn":
+				# السحب فوق زر النار يحرّك الكاميرا ليمكن التصويب أثناء الرمي
+				if d2["id"] == "fire" or d2["id"] == "fire2":
+					look_delta += e2.relative
 			"stick":
 				_stick_cur = e2.position
 				_update_stick()
